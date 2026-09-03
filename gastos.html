@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gastos — Egipto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav class="topnav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html">Egipto</a>
+      <ul>
+        <li><a class="page-link" href="index.html">Resumen</a></li>
+        <li><a class="page-link" href="viaje-a-medida.html" style="--accent: var(--carnelian)">Viaje a medida</a></li>
+        <li><a class="page-link active" href="gastos.html" style="--accent: var(--malachite)">Gastos</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="detail-hero" style="--accent: var(--malachite)">
+    <div class="wrap">
+      <a class="back" href="index.html">Volver al resumen</a>
+      <h1>Gastos</h1>
+      <p class="lede">Registro de los gastos reales del viaje, para llevar la cuenta entre Catalina y Jaume a medida que se reserva y se paga cada cosa.</p>
+    </div>
+  </header>
+
+  <section class="detail-section">
+    <div class="wrap">
+
+      <div class="gastos-stats" id="gastos-stats" style="--accent: var(--malachite)">
+        <div class="gasto-stat">
+          <div class="stat-label">Total gastado</div>
+          <div class="stat-val" id="stat-total">0 €</div>
+        </div>
+        <div class="gasto-stat">
+          <div class="stat-label">Catalina</div>
+          <div class="stat-val" id="stat-cata">0 €</div>
+        </div>
+        <div class="gasto-stat">
+          <div class="stat-label">Jaume</div>
+          <div class="stat-val" id="stat-jaume">0 €</div>
+        </div>
+        <div class="gasto-stat">
+          <div class="stat-label">Ambos / compartido</div>
+          <div class="stat-val" id="stat-ambos">0 €</div>
+        </div>
+      </div>
+
+      <div class="settle-box" id="settle-box" style="--accent: var(--malachite)">
+        <p id="settle-text">Añade gastos para calcular quién debe dinero a quién.</p>
+      </div>
+
+      <div class="gastos-form" style="--accent: var(--malachite)">
+        <div class="full">
+          <label>Descripción</label>
+          <input type="text" id="g-desc" placeholder="Ej: Hotel en Hurghada">
+        </div>
+        <div>
+          <label>Categoría</label>
+          <select id="g-cat">
+            <option value="transporte">🚗 Transporte</option>
+            <option value="alojamiento">🏨 Alojamiento</option>
+            <option value="actividad">🐫 Actividad / Entrada</option>
+            <option value="comida">🍽️ Comida</option>
+            <option value="compras">🛍️ Compras</option>
+            <option value="otro">📦 Otro</option>
+          </select>
+        </div>
+        <div>
+          <label>Pagado por</label>
+          <select id="g-quien">
+            <option value="ambos">Ambos</option>
+            <option value="cata">Catalina</option>
+            <option value="jaume">Jaume</option>
+          </select>
+        </div>
+        <div>
+          <label>Importe (€)</label>
+          <input type="number" id="g-importe" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div>
+          <label>Día</label>
+          <select id="g-dia">
+            <option value="">— Sin especificar —</option>
+            <option value="24 dic">24 dic — Llegada a El Cairo</option>
+            <option value="25 dic">25 dic — Tour por El Cairo</option>
+            <option value="26 dic">26 dic — Giza, Menfis y Saqqara</option>
+            <option value="27 dic">27 dic — Salida al desierto</option>
+            <option value="28 dic">28 dic — Regreso a El Cairo</option>
+            <option value="29 dic">29 dic — Comienzo del crucero</option>
+            <option value="30 dic">30 dic — Crucero por el Nilo</option>
+            <option value="31 dic">31 dic — Crucero por el Nilo</option>
+            <option value="1 ene">1 ene — Traslado a Hurghada</option>
+            <option value="2 ene">2 ene — Hurghada (quad)</option>
+            <option value="3 ene">3 ene — Hurghada (snorkel)</option>
+            <option value="4 ene">4 ene — Hurghada</option>
+            <option value="5 ene">5 ene — Vuelo de regreso</option>
+          </select>
+        </div>
+        <div class="full">
+          <button class="btn-add" onclick="addGasto()">+ Añadir gasto</button>
+        </div>
+      </div>
+
+      <div class="gastos-table-wrap">
+        <table class="gastos-table">
+          <thead>
+            <tr>
+              <th>Día</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Pagado por</th>
+              <th style="text-align:right;">Importe</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="gastos-body"></tbody>
+        </table>
+        <div id="empty-gastos" class="empty-gastos">Aún no hay gastos registrados.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <button class="sync-toggle" onclick="toggleSync()">Exportar / Importar datos</button>
+      <div id="sync-panel" hidden>
+        <div class="sync-box">
+          <div class="sync-col">
+            <p class="sync-label">Exportar — copia este texto y guárdalo o envíatelo</p>
+            <textarea id="export-area" readonly rows="5" placeholder="Pulsa el botón para generar..."></textarea>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn-sync" onclick="doExport()">Generar</button>
+              <button class="btn-sync" onclick="copyExport()">Copiar</button>
+            </div>
+          </div>
+          <div class="sync-col">
+            <p class="sync-label">Importar — pega aquí los datos del otro dispositivo</p>
+            <textarea id="import-area" rows="5" placeholder="Pega aquí el texto exportado..."></textarea>
+            <div style="margin-top:8px;">
+              <button class="btn-sync btn-import" onclick="doImport()">Importar y aplicar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:16px;">Este cuaderno se va completando a medida que llega información nueva de cada opción.</p>
+    </div>
+  </footer>
+
+<script>
+const GASTOS_KEY = 'egipto_gastos';
+
+const GASTOS_SEED = [
+  { id: 1, desc: 'Vuelos Vueling (PMI-BCN-CAI ida y vuelta)', cat: 'transporte', quien: 'ambos', importe: 1564.00, dia: '24 dic' },
+  { id: 2, desc: 'Hotel Lacasa Zamalek, El Cairo (1ª parte)', cat: 'alojamiento', quien: 'ambos', importe: 215.00, dia: '24 dic' },
+  { id: 3, desc: 'Tour por El Cairo (Civitatis)', cat: 'actividad', quien: 'ambos', importe: 110.40, dia: '25 dic' },
+  { id: 4, desc: 'Giza, Menfis y Saqqara (Civitatis)', cat: 'actividad', quien: 'ambos', importe: 181.38, dia: '26 dic' },
+  { id: 5, desc: 'Desierto Blanco / Bahariya (GetYourGuide)', cat: 'actividad', quien: 'ambos', importe: 263.00, dia: '27 dic' },
+  { id: 6, desc: 'Hotel Amon Ra Boutique, El Cairo (2ª parte)', cat: 'alojamiento', quien: 'ambos', importe: 62.00, dia: '28 dic' },
+  { id: 7, desc: 'Crucero por el Nilo (GetYourGuide)', cat: 'alojamiento', quien: 'ambos', importe: 2242.76, dia: '29 dic' },
+  { id: 8, desc: 'Transfer al Mar Rojo (Hurghada)', cat: 'transporte', quien: 'ambos', importe: 60.00, dia: '1 ene' },
+];
+
+function getGastos() {
+  const stored = localStorage.getItem(GASTOS_KEY);
+  if (stored === null) {
+    saveGastos(GASTOS_SEED);
+    return GASTOS_SEED;
+  }
+  return JSON.parse(stored);
+}
+function saveGastos(arr) {
+  localStorage.setItem(GASTOS_KEY, JSON.stringify(arr));
+}
+
+const CAT_LABELS = {
+  comida: '🍽️ Comida', transporte: '🚗 Transporte', actividad: '🐫 Actividad',
+  alojamiento: '🏨 Alojamiento', compras: '🛍️ Compras', otro: '📦 Otro'
+};
+const QUIEN_LABELS = { ambos: 'Ambos', cata: 'Catalina', jaume: 'Jaume' };
+
+function addGasto() {
+  const desc = document.getElementById('g-desc').value.trim();
+  const cat = document.getElementById('g-cat').value;
+  const quien = document.getElementById('g-quien').value;
+  const importe = parseFloat(document.getElementById('g-importe').value);
+  const dia = document.getElementById('g-dia').value;
+  if (!desc || isNaN(importe) || importe <= 0) {
+    alert('Añade una descripción y un importe válido.');
+    return;
+  }
+  const gastos = getGastos();
+  gastos.push({ id: Date.now(), desc, cat, quien, importe, dia });
+  saveGastos(gastos);
+  document.getElementById('g-desc').value = '';
+  document.getElementById('g-importe').value = '';
+  document.getElementById('g-dia').value = '';
+  renderGastos();
+}
+function deleteGasto(id) {
+  saveGastos(getGastos().filter(g => g.id !== id));
+  renderGastos();
+}
+function renderGastos() {
+  const gastos = getGastos();
+  const body = document.getElementById('gastos-body');
+  const empty = document.getElementById('empty-gastos');
+  body.innerHTML = '';
+  empty.style.display = gastos.length === 0 ? 'block' : 'none';
+
+  let total = 0, cata = 0, jaume = 0, ambos = 0;
+  gastos.forEach(g => {
+    total += g.importe;
+    if (g.quien === 'cata') cata += g.importe;
+    else if (g.quien === 'jaume') jaume += g.importe;
+    else ambos += g.importe;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--ink-soft); font-size:0.82rem;">${g.dia || '—'}</td>
+      <td>${g.desc}</td>
+      <td><span class="cat-badge cat-${g.cat}">${CAT_LABELS[g.cat]}</span></td>
+      <td style="color:var(--ink-soft);">${QUIEN_LABELS[g.quien]}</td>
+      <td style="text-align:right; font-weight:700; color: var(--ochre);">${g.importe.toFixed(2)} €</td>
+      <td><button class="btn-del" onclick="deleteGasto(${g.id})">✕</button></td>
+    `;
+    body.appendChild(tr);
+  });
+
+  const fmt = n => n.toFixed(2) + ' €';
+  document.getElementById('stat-total').textContent = fmt(total);
+  document.getElementById('stat-cata').textContent = fmt(cata);
+  document.getElementById('stat-jaume').textContent = fmt(jaume);
+  document.getElementById('stat-ambos').textContent = fmt(ambos);
+
+  renderSettle(cata, jaume);
+}
+
+function renderSettle(cata, jaume) {
+  const settleText = document.getElementById('settle-text');
+  const diff = cata - jaume;
+  const settle = Math.abs(diff) / 2;
+  if (settle < 0.005) {
+    settleText.innerHTML = 'Cuentas igualadas — nadie debe nada.';
+  } else if (diff > 0) {
+    settleText.innerHTML = `<strong>Jaume</strong> debe <strong>${settle.toFixed(2)} €</strong> a <strong>Catalina</strong>.`;
+  } else {
+    settleText.innerHTML = `<strong>Catalina</strong> debe <strong>${settle.toFixed(2)} €</strong> a <strong>Jaume</strong>.`;
+  }
+}
+
+function toggleSync() {
+  document.getElementById('sync-panel').hidden = !document.getElementById('sync-panel').hidden;
+}
+function doExport() {
+  const v = localStorage.getItem(GASTOS_KEY);
+  document.getElementById('export-area').value = v || '[]';
+}
+function copyExport() {
+  const area = document.getElementById('export-area');
+  if (!area.value) doExport();
+  navigator.clipboard.writeText(area.value).then(() => alert('¡Copiado al portapapeles!')).catch(() => {
+    area.select(); document.execCommand('copy'); alert('¡Copiado!');
+  });
+}
+function doImport() {
+  const text = document.getElementById('import-area').value.trim();
+  if (!text) { alert('Pega primero los datos exportados.'); return; }
+  try {
+    const data = JSON.parse(text);
+    saveGastos(data);
+    renderGastos();
+    document.getElementById('import-area').value = '';
+    alert('✅ Datos importados.');
+  } catch (e) {
+    alert('❌ El texto no es válido. Asegúrate de copiar el texto completo.');
+  }
+}
+
+renderGastos();
+</script>
+
+</body>
+</html>
