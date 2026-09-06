@@ -222,6 +222,12 @@ a { color: var(--lapis); }
 
 /* ---------- GASTOS ---------- */
 
+.sync-status {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 18px;
+}
+
 .gastos-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

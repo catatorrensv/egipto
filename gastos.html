@@ -33,6 +33,8 @@
   <section class="detail-section">
     <div class="wrap">
 
+      <p class="sync-status" id="sync-status">🔄 Sincronizando…</p>
+
       <div class="gastos-stats" id="gastos-stats" style="--accent: var(--malachite)">
         <div class="gasto-stat">
           <div class="stat-label">Total gastado</div>
@@ -157,16 +159,7 @@
 <script>
 const GASTOS_KEY = 'egipto_gastos';
 
-const GASTOS_SEED = [
-  { id: 1, desc: 'Vuelos Vueling (PMI-BCN-CAI ida y vuelta)', cat: 'transporte', quien: 'ambos', importe: 1564.00, dia: '24 dic' },
-  { id: 2, desc: 'Hotel Lacasa Zamalek, El Cairo (1ª parte)', cat: 'alojamiento', quien: 'ambos', importe: 215.00, dia: '24 dic' },
-  { id: 3, desc: 'Tour por El Cairo (Civitatis)', cat: 'actividad', quien: 'ambos', importe: 110.40, dia: '25 dic' },
-  { id: 4, desc: 'Giza, Menfis y Saqqara (Civitatis)', cat: 'actividad', quien: 'ambos', importe: 181.38, dia: '26 dic' },
-  { id: 5, desc: 'Desierto Blanco / Bahariya (GetYourGuide)', cat: 'actividad', quien: 'ambos', importe: 263.00, dia: '27 dic' },
-  { id: 6, desc: 'Hotel Amon Ra Boutique, El Cairo (2ª parte)', cat: 'alojamiento', quien: 'ambos', importe: 62.00, dia: '28 dic' },
-  { id: 7, desc: 'Crucero por el Nilo (GetYourGuide)', cat: 'alojamiento', quien: 'ambos', importe: 2242.76, dia: '29 dic' },
-  { id: 8, desc: 'Transfer al Mar Rojo (Hurghada)', cat: 'transporte', quien: 'ambos', importe: 60.00, dia: '1 ene' },
-];
+const GASTOS_SEED = [];
 
 function getGastos() {
   const stored = localStorage.getItem(GASTOS_KEY);
@@ -203,13 +196,18 @@ function addGasto() {
   document.getElementById('g-importe').value = '';
   document.getElementById('g-dia').value = '';
   renderGastos();
+  syncNow();
 }
 function deleteGasto(id) {
-  saveGastos(getGastos().filter(g => g.id !== id));
+  const gastos = getGastos();
+  const g = gastos.find(x => x.id === id);
+  if (g) g.deleted = true;
+  saveGastos(gastos);
   renderGastos();
+  syncNow();
 }
 function renderGastos() {
-  const gastos = getGastos();
+  const gastos = getGastos().filter(g => !g.deleted);
   const body = document.getElementById('gastos-body');
   const empty = document.getElementById('empty-gastos');
   body.innerHTML = '';
@@ -275,16 +273,73 @@ function doImport() {
   if (!text) { alert('Pega primero los datos exportados.'); return; }
   try {
     const data = JSON.parse(text);
-    saveGastos(data);
+    saveGastos(mergeGastos(getGastos(), data));
     renderGastos();
     document.getElementById('import-area').value = '';
-    alert('✅ Datos importados.');
+    alert('✅ Datos importados y combinados.');
+    syncNow();
   } catch (e) {
     alert('❌ El texto no es válido. Asegúrate de copiar el texto completo.');
   }
 }
 
+/* ---------- Sincronización automática entre dispositivos (jsonbin.io) ---------- */
+
+const JSONBIN_ID = '6a9d3611da38895dfe3f314c';
+const JSONBIN_KEY = '$2a$10$SyL.bKAGgJ6lYQzMZgRiDunkPW7GZPWH2V5Db.rBOTPYkPyAX/IRy';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
+function setSyncStatus(text) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = text;
+}
+
+// Combina dos listas de gastos por id. Un gasto marcado como borrado en
+// cualquiera de las dos copias queda borrado en el resultado, para que
+// sincronizar nunca "resucite" un gasto eliminado en otro dispositivo.
+function mergeGastos(a, b) {
+  const map = new Map();
+  [...a, ...b].forEach(g => {
+    const existing = map.get(g.id);
+    if (!existing) { map.set(g.id, g); return; }
+    map.set(g.id, (existing.deleted || g.deleted) ? { ...existing, ...g, deleted: true } : g);
+  });
+  return Array.from(map.values()).sort((x, y) => x.id - y.id);
+}
+
+async function syncNow() {
+  try {
+    setSyncStatus('🔄 Sincronizando…');
+    const getRes = await fetch(`${JSONBIN_URL}/latest?t=${Date.now()}`, {
+      headers: { 'X-Bin-Meta': 'false' }, cache: 'no-store'
+    });
+    if (!getRes.ok) throw new Error('No se pudo leer la nube');
+    const remoteData = await getRes.json();
+    const remoteGastos = Array.isArray(remoteData.gastos) ? remoteData.gastos : [];
+
+    const merged = mergeGastos(getGastos(), remoteGastos);
+    saveGastos(merged);
+    renderGastos();
+
+    const putRes = await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify({ gastos: merged, updatedAt: Date.now() })
+    });
+    if (!putRes.ok) throw new Error('No se pudo guardar en la nube');
+
+    setSyncStatus('☁️ Sincronizado con Catalina y Jaume');
+  } catch (e) {
+    setSyncStatus('⚠️ Sin conexión — mostrando la copia guardada en este dispositivo');
+  }
+}
+
 renderGastos();
+syncNow();
+setInterval(syncNow, 20000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') syncNow();
+});
 </script>
 
 </body>
